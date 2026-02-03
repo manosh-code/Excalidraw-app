@@ -2,29 +2,51 @@ import express from "express";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import jwt from "jsonwebtoken";
 import { middleware } from "./middleware";
-import { CreateUserSchema , SigninSchema , CreateRoomSchema } from "@repo/common/types"
-
+import { CreateUserSchema , SigninSchema , CreateRoomSchema } from "@repo/common/types";
+import { prismaClient } from "@repo/db/client";
 
 const app = express();
 
 
-app.post("/signup", (req, res) => {
+app.post("/signup", async (req, res) => {
 
-    const data = CreateUserSchema.parse(req.body);
-    if(!data.success){
+    const parseData = CreateUserSchema.parse(req.body);
+    if(!parseData.success){
         return res.status(400).json({
             message: "Invalid data"
         })
         return;
     }
+    // db call
+    try {
+        await prismaClient.user.create({
+            data: {
+                email: parseData.data?.email,
+                password: parseData.data.password,
+                name: parseData.data.name,
+                
+            }
+        })
+        res.json({
+            userId: "123"
+        })
 
-    res.json({
-        userId : "123"
-    })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Internal server error"
+        })
+    }
 
 })
 
-app.post("/signup", (req, res) => {
+
+
+
+    
+
+
+app.post("/signup", async (req, res) => {
     const data = SigninSchema.parse(req.body);
     if(!data.success){
         return res.status(400).json({
