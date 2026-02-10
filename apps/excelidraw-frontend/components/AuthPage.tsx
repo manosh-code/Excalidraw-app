@@ -9,7 +9,7 @@ export function AuthPage({isSignin}:{
 
     {/* Title */}
     <h1 className="text-3xl font-bold text-white text-center">
-      {isSignin ? "Welcome Back 👋" : "Join Us 🚀"}
+      {isSignin ? "Welcome Back " : "Join Us "}
     </h1>
 
     <p className="text-gray-300 text-center mt-2">
