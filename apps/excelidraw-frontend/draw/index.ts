@@ -20,6 +20,8 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
 
             let existingShapes: Shape[] = await getExistingShapes(roomId);
 
+            console.log("Existing shapes:", existingShapes);
+
             if(!ctx) return;
 
             socket.onmessage = (event) => {
@@ -27,7 +29,7 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
 
                 if (message.type === "chat"){
                     const parsedShape = JSON.parse(message.message);
-                    existingShapes.push(parsedShape);
+                    existingShapes.push(parsedShape.shape);
                     clearCanvas(existingShapes, ctx, canvas);
                 }
             }
@@ -68,7 +70,8 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
                     type: "chat",
                     message: JSON.stringify({
                         shape
-                    })
+                    }),
+                    roomId
                 }))
 
 
@@ -109,7 +112,7 @@ async function getExistingShapes(roomId: string) {
 
     const shape = message.map((x : {message: string}) => {
         const messageData = JSON.parse(x.message);
-        return messageData ;
+        return messageData.shape ;
     })
     return shape;
 }
