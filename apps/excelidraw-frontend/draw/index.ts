@@ -1,5 +1,6 @@
 import axios from "axios";
 import { HTTP_BACKEND } from "@/config";
+import { Shapes } from "lucide-react";
 
 type Shape = {
     type: "rect" ;
@@ -12,6 +13,12 @@ type Shape = {
     centerX: number;
     centerY: number;
     radius: number;
+} | {
+    type: "pencil";
+    startX : number;
+    startY : number;
+    endX : number;
+    endY : number;
 }
 
 
@@ -58,7 +65,8 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
                 const height = e.clientY - startY;
 
                 const shape : Shape = {
-                    type: "rect",
+                    // @ts-ignore
+                    type: window.selectedTool,
                     x: startX,
                     y: startY,
                     width,
@@ -86,7 +94,18 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
            clearCanvas(existingShapes, ctx, canvas);
 
            ctx.strokeStyle = "rgba(255,255,255)";
-           ctx.strokeRect(startX, startY, width, height);
+            
+           // @ts-ignore
+           const selectedTool = window.selectedTool;
+           if (selectedTool === "rect") {
+               ctx.strokeRect(startX, startY, width, height);
+           } else if (selectedTool === "circle"){
+                const radius = Math.sqrt(width * width + height * height);
+                ctx.beginPath();
+                ctx.arc(startX, startY, radius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.closePath();
+           }
         }
     });
 
@@ -102,7 +121,14 @@ function clearCanvas(existingShapes: Shape[], ctx: CanvasRenderingContext2D, can
         if(shape.type === "rect"){
             ctx.strokeStyle = "rgba(255,255,255)";
             ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
-        }
+        } else if (shape.type === "circle"){
+                
+                const radius = Math.sqrt(shape.width * shape.width + shape.height * shape.height);
+                ctx.beginPath();
+                ctx.arc(shape.x, shape.y, radius, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.closePath();
+           }
     })
 }
 
