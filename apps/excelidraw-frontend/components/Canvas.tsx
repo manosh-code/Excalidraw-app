@@ -31,6 +31,10 @@ export function Canvas({
         if (canvasRef.current) {
             const game = new Game(canvasRef.current, roomId, socket);
             setGame(game);
+
+            return () => {
+                game.destroy();
+            }
         }
     }, [roomId, socket]);
 

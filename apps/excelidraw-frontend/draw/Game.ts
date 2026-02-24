@@ -86,7 +86,7 @@ export class Game{
 
             ctx.strokeStyle = "rgba(255,255,255)";
             ctx.beginPath();
-            ctx.arc(shape.centerX, shape.centerY, shape.radius, 0, Math.PI * 2);
+            ctx.arc(shape.centerX, shape.centerY, Math.abs(shape.radius), 0, Math.PI * 2);
             ctx.stroke();
             ctx.closePath();
         } else if (shape.type === "pencil"){
@@ -177,7 +177,8 @@ initMouseHandlers() {
                 ctx.strokeStyle = "rgba(255,255,255)";
             
                 // @ts-ignore
-                const selectedTool = window.selectedTool;
+                const selectedTool = this.selectedTool;
+                console.log("selectedTool", selectedTool);
                 if (selectedTool === "rect") {
                     ctx.strokeRect(this.startX, this.startY, width, height);
                 } else if (selectedTool === "circle") {
@@ -185,7 +186,7 @@ initMouseHandlers() {
                     const centerX = this.startX + radius;
                     const centerY = this.startY + radius;
                     ctx.beginPath();
-                    ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                    ctx.arc(centerX, centerY, Math.abs(radius), 0, Math.PI * 2);
                     ctx.stroke();
                     ctx.closePath();
                 }
