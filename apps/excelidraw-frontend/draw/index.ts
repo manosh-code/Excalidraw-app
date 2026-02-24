@@ -63,15 +63,42 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
                 console.log("Mouse released");
                 const width = e.clientX - startX;
                 const height = e.clientY - startY;
-
-                const shape : Shape = {
-                    // @ts-ignore
-                    type: window.selectedTool,
-                    x: startX,
-                    y: startY,
-                    width,
-                    height
+                
+                // @ts-ignore
+                const selectedTool = window.selectedTool;
+                let shape: Shape | null = null;
+                if (selectedTool === "rect") {
+                    shape = {
+                        // @ts-ignore
+                        type: window.selectedTool,
+                        x: startX,
+                        y: startY,
+                        width,
+                        height
+                    }
+                    
+                } else if (selectedTool === "circle") {
+                    shape = {
+                        // @ts-ignore
+                        type: window.selectedTool,
+                        centerX: startX,
+                        centerY: startY,
+                        radius: Math.sqrt(width * width + height * height)
+                    }
+                    
+                } else if (selectedTool === "pencil"){
+                    shape = {
+                        // @ts-ignore
+                        type: window.selectedTool,
+                        startX,
+                        startY,
+                        endX: e.clientX,
+                        endY: e.clientY
+                    }
                 }
+
+                if (!shape) return;
+
                 existingShapes.push(shape)
 
                 socket.send(JSON.stringify({
@@ -100,9 +127,11 @@ export async function initDraw(canvas: HTMLCanvasElement, roomId: string, socket
            if (selectedTool === "rect") {
                ctx.strokeRect(startX, startY, width, height);
            } else if (selectedTool === "circle"){
-                const radius = Math.sqrt(width * width + height * height);
+                const radius = Math.max(width, height) / 2;
+                const centerX = startX + radius;
+                const centerY = startY + radius;
                 ctx.beginPath();
-                ctx.arc(startX, startY, radius, 0, Math.PI * 2);
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.closePath();
            }
@@ -123,12 +152,20 @@ function clearCanvas(existingShapes: Shape[], ctx: CanvasRenderingContext2D, can
             ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
         } else if (shape.type === "circle"){
                 
-                const radius = Math.sqrt(shape.width * shape.width + shape.height * shape.height);
+                
+                ctx.strokeStyle = "rgba(255,255,255)";
                 ctx.beginPath();
-                ctx.arc(shape.x, shape.y, radius, 0, Math.PI * 2);
+                ctx.arc(shape.centerX, shape.centerY, shape.radius, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.closePath();
-           }
+        } else if (shape.type === "pencil"){
+            ctx.strokeStyle = "rgba(255,255,255)";
+            ctx.beginPath();
+            ctx.moveTo(shape.startX, shape.startY);
+            ctx.lineTo(shape.endX, shape.endY);
+            ctx.stroke();
+            ctx.closePath();
+        }
     })
 }
 
