@@ -46,8 +46,16 @@ export class Game{
         this.initMouseHandlers();
     }
 
+    destroy(){
+        this.canvas.removeEventListener("mousedown", this.mouseDownHandler) 
+        this.canvas.removeEventListener("mouseup", this.mouseUpHandler) 
+        this.canvas.removeEventListener("mousemove", this.mouseMoveHandler)
 
-    setShape(tool: Tool){
+
+    }
+
+
+    setTool(tool: Tool){
         this.selectedTool = tool;
     }
 
@@ -100,71 +108,67 @@ export class Game{
     });
 }
 
-initMouseHandlers() {
+mouseDownHandler = (e: MouseEvent) => {
         if (!this.canvas) return;
 
-        this.canvas.addEventListener("mousedown", (e: MouseEvent) => {
-                this.clicked = true;
-                this.startX = e.clientX;
-                this.startY = e.clientY;
-            });
+        this.clicked = true;
+        this.startX = e.clientX;
+        this.startY = e.clientY;
+    };
 
-        this.canvas.addEventListener("mouseup", (e: MouseEvent) => {
-                this.clicked = false;
-                console.log("Mouse released");
-                const width = e.clientX - this.startX;
-                const height = e.clientY - this.startY;
+mouseUpHandler = (e: MouseEvent) => {
+        if (!this.canvas) return;
+        this.clicked = false;
+        console.log("Mouse released");
+        const width = e.clientX - this.startX;
+        const height = e.clientY - this.startY;
 
-                // @ts-ignore
-                const selectedTool = this.selectedTool;
-                let shape: Shape | null = null;
-                if (selectedTool === "rect") {
-                    shape = {
-                        // @ts-ignore
-                        type: window.selectedTool,
-                        x: this.startX,
-                        y: this.startY,
-                        width,
-                        height
-                    }
-                    
-                } else if (selectedTool === "circle") {
-                    shape = {
-                        // @ts-ignore
-                        type: window.selectedTool,
-                        centerX: this.startX,
-                        centerY: this.startY,
-                        radius: Math.sqrt(width * width + height * height)
-                    }
-                    
-                } else if (selectedTool === "pencil"){
-                    shape = {
-                        // @ts-ignore
-                        type: window.selectedTool,
-                        startX: this.startX,
-                        startY: this.startY,
-                        endX: e.clientX,
-                        endY: e.clientY
-                    }
-                }
+        const selectedTool = this.selectedTool;
+        let shape: Shape | null = null;
+        if (selectedTool === "rect") {
+            shape = {
+                type: "rect",
+                x: this.startX,
+                y: this.startY,
+                width,
+                height
+            }
+            
+        } else if (selectedTool === "circle") {
+            shape = {
+                type: "circle",
+                centerX: this.startX,
+                centerY: this.startY,
+                radius: Math.sqrt(width * width + height * height)
+            }
+            
+        } else if (selectedTool === "pencil"){
+            shape = {
+                type: "pencil",
+                startX: this.startX,
+                startY: this.startY,
+                endX: e.clientX,
+                endY: e.clientY
+            }
+        }
 
-                if (!shape) return;
+        if (!shape) return;
 
-                this.existingShapes.push(shape)
+        this.existingShapes.push(shape)
 
-                this.socket.send(JSON.stringify({
-                    type: "chat",
-                    message: JSON.stringify({
-                        shape
-                    }),
-                    roomId : this.roomID
-                }))
+        this.socket.send(JSON.stringify({
+            type: "chat",
+            message: JSON.stringify({
+                shape
+            }),
+            roomId : this.roomID
+        }))
+}
 
 
-            });
 
-            this.canvas.addEventListener("mousemove", (e) => {
-
+mouseMoveHandler = (e: MouseEvent) => {
+            if (!this.canvas) return;
             if (this.clicked) {
                 const width = e.clientX - this.startX;
                 const height = e.clientY - this.startY;
@@ -176,7 +180,6 @@ initMouseHandlers() {
 
                 ctx.strokeStyle = "rgba(255,255,255)";
             
-                // @ts-ignore
                 const selectedTool = this.selectedTool;
                 console.log("selectedTool", selectedTool);
                 if (selectedTool === "rect") {
@@ -191,8 +194,23 @@ initMouseHandlers() {
                     ctx.closePath();
                 }
             }
-        });
+
+}
+
+
+initMouseHandlers() {
+        //if (!this.canvas) return;
+
+        this.canvas.addEventListener("mousedown", this.mouseDownHandler) 
+
+
+        this.canvas.addEventListener("mouseup", this.mouseUpHandler)
+
+
+        this.canvas.addEventListener("mousemove", this.mouseMoveHandler)
+
     }
 }
+
 
 
